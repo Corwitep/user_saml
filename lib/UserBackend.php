@@ -497,6 +497,18 @@ class UserBackend extends ABackend implements IApacheBackend, IUserBackend, IGet
 
 		return $value;
 	}
+        private function getAttributeMultiValue($name, array $attributes) {
+                $keys = $this->getAttributeKeys($name);
+
+                $value = [];
+                foreach ($keys as $key) {
+                        if(array_key_exists($key, $attributes)) {
+                               $value = array_merge($value, explode(';', $attributes[$key]));
+                        }
+                }
+
+                return $value;
+        } 
 
 	public function updateAttributes(string $uid, array $attributes): void {
 		$user = $this->userManager->get($uid);
@@ -526,7 +538,7 @@ class UserBackend extends ABackend implements IApacheBackend, IUserBackend, IGet
 		}
 
 		try {
-			$newGroups = $this->getAttributeArrayValue('saml-attribute-mapping-group_mapping', $attributes);
+			$newGroups = $this->getAttributeMultiValue('saml-attribute-mapping-group_mapping', $attributes);
 			$this->logger->debug('Group attribute content: {groups}', ['app' => 'user_saml', 'groups' => json_encode($newGroups)]);
 		} catch (\InvalidArgumentException $e) {
 			$this->logger->debug('Failed to fetch group attribute: {exception}', ['app' => 'user_saml', 'exception' => $e->getMessage()]);
